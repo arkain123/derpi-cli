@@ -1,0 +1,194 @@
+.\" derpi.1 - man page for Derpi CLI
+.TH DERPI 1 "2026" "derpi 2.0" "User Commands"
+.SH NAME
+derpi \- CLI for searching, browsing and downloading art from Derpibooru
+.SH SYNOPSIS
+.B derpi
+[\fB\-\-version\fR] [\fB\-\-config\fR] \fIcommand\fR [\fIoptions\fR]
+.SH DESCRIPTION
+.B derpi
+is a command-line tool for interacting with the Derpibooru API
+(https://derpibooru.org/pages/api).
+It allows you to search for images by tags, filter them by score,
+faves, size, date, uploader, and download files locally.
+.PP
+The tool respects the API rate limit (20 requests / 10 seconds): it
+inserts a pause between requests, and on HTTP 429 it waits 10 seconds
+and retries the request. File downloads go through the CDN at
+derpicdn.net and do not consume the API rate limit.
+.PP
+Configuration is stored in
+.IR ~/.config/derpi-cli/config.json .
+On first run the config is created interactively.
+.SH COMMANDS
+.TP
+.B search \fItags\fR
+Search for images. Prints ID, score, faves, size, tags and a link.
+.TP
+.B download \fItags\fR
+Download images by tags with pagination.
+.TP
+.B info \fIID\fR
+Show details for a single image by ID.
+.TP
+.B random \fR[\fItags\fR]
+Fetch a random image matching the given tags (or none).
+.TP
+.B tags \fIname\fR [\fIname ...\fR]
+Show information about tags: category, image count, description.
+.SH GLOBAL OPTIONS
+.TP
+.B \-\-version
+Print version and exit.
+.TP
+.B \-\-config
+Print the path to the config file and exit.
+.SH SEARCH AND DOWNLOAD OPTIONS
+.TP
+.B \-\-page \fIN\fR
+Page number (default: 1).
+.TP
+.B \-\-per\-page \fIN\fR
+Results per page, 1\-50 (default: 50).
+.TP
+.B \-\-sort \fIFIELD\fR
+Sort field: created_at, score, faves, wilson_score, random,
+updated_at, tag_count, width, height, first_seen_at.
+.TP
+.B \-\-dir \fIDIRECTION\fR
+Sort direction: desc or asc (default: desc).
+.TP
+.B \-\-min\-score \fIN\fR
+Minimum score.
+.TP
+.B \-\-max\-score \fIN\fR
+Maximum score.
+.TP
+.B \-\-min\-faves \fIN\fR
+Minimum number of faves.
+.TP
+.B \-\-min\-upvotes \fIN\fR
+Minimum number of upvotes.
+.TP
+.B \-\-min\-wilson \fIF\fR
+Minimum Wilson score (0.0\-1.0).
+.TP
+.B \-\-min\-width \fIN\fR
+Minimum width in pixels.
+.TP
+.B \-\-min\-height \fIN\fR
+Minimum height in pixels.
+.TP
+.B \-\-max\-width \fIN\fR
+Maximum width in pixels.
+.TP
+.B \-\-max\-height \fIN\fR
+Maximum height in pixels.
+.TP
+.B \-\-uploader \fINAME\fR
+Filter by uploader name.
+.TP
+.B \-\-gallery \fIID\fR
+Filter by gallery ID.
+.TP
+.B \-\-faved\-by \fINAME\fR
+Images faved by the given user.
+.TP
+.B \-\-upvoted\-by \fINAME\fR
+Images upvoted by the given user.
+.TP
+.B \-\-watched
+Only images from your watchlist (requires an API key).
+.TP
+.B \-\-min\-tag\-count \fIN\fR
+Minimum number of tags.
+.TP
+.B \-\-max\-tag\-count \fIN\fR
+Maximum number of tags.
+.TP
+.B \-\-first\-seen\-after \fIDATE\fR
+Images first seen after the given date (YYYY-MM-DD).
+.TP
+.B \-\-first\-seen\-before \fIDATE\fR
+Images first seen before the given date (YYYY-MM-DD).
+.TP
+.B \-\-created\-at\-after \fIDATE\fR
+Images uploaded after the given date (YYYY-MM-DD).
+.TP
+.B \-\-created\-at\-before \fIDATE\fR
+Images uploaded before the given date (YYYY-MM-DD).
+.SH SEARCH OPTIONS
+.TP
+.B \-\-json
+Output the raw result as JSON.
+.SH DOWNLOAD OPTIONS
+.TP
+.B \-o, \-\-output \fIDIR\fR
+Output directory (default from config).
+.TP
+.B \-\-limit \fIN\fR
+Maximum number of files to download (default: 50).
+.TP
+.B \-\-size \fISIZE\fR
+Image size: full, large, medium, small, thumb (default: full).
+.SH INFO AND RANDOM OPTIONS
+.TP
+.B \-\-json
+Output as JSON.
+.SH FILES
+.TP
+.I ~/.config/derpi-cli/config.json
+Configuration file: API key, request delay, default output
+directory, filter ID. Created on first run with mode 0600.
+.SH CONFIGURATION
+JSON format:
+.PP
+.nf
+{
+  "api_key": "",
+  "rate_limit_delay": 0.5,
+  "default_filter_id": null,
+  "default_output_dir": "./downloads"
+}
+.fi
+.PP
+If
+.I api_key
+is set, the tool uses your account's personal filters and can
+access your watchlist. The
+.I rate_limit_delay
+value sets the pause between API requests, in seconds.
+.SH EXAMPLES
+Find the top 10 by score:
+.PP
+.nf
+derpi search "fluttershy, safe" --sort score --per-page 10
+.fi
+.PP
+Download 20 wallpapers at 1920x1080 or larger:
+.PP
+.nf
+derpi download "wallpaper, safe" --min-width 1920 \\
+    --min-height 1080 --limit 20 -o ./wallpapers
+.fi
+.PP
+Fetch a random high-score image:
+.PP
+.nf
+derpi random "rarity, safe, score.gt:100"
+.fi
+.PP
+Show information about a tag:
+.PP
+.nf
+derpi tags fluttershy
+.fi
+.SH SEE ALSO
+.BR curl (1),
+.BR jq (1)
+.PP
+API documentation: https://derpibooru.org/pages/api
+.SH AUTHOR
+Derpi CLI contributors.
+.SH BUGS
+Report bugs at the project's issue tracker.
